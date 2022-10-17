@@ -1,0 +1,117 @@
+# Relevant predictors, hypothesized direction of effect (+/-), and the rationale for each hypothesized effect.
+
+
+#Exploratory Data Analysis
+
+Predictor	Effect	Rationale
+
+Dependant Variable: pricesold 
+
+Predictors:
+sqft	+	The SQft positively affects the price
+beds	+	Beds positively affect the price
+bathstotal	+	Has positive effect
+garage	+	Has a relatively positive effect;  as the house with more garages can be sold at a higher price
+lotsqft	+	Has a significance to predict the dependent variable
+yrblt	+/-	As the old built houses may reduce the price and newly built may increase the price
+pool	+/-	A private Pool has more price whereas a house with no  amenities such as a pool may reduce the price
+spa		Relatively lesser influence on the response variable
+splsale	-	For a short sale  due to the customer’s urgency to dispose of the property, the seller may sell it at a reduced price
+listprice	+	Positively affects the price sold
+Cumulative Price on market	-	Affects the price
+subdivn	+/-	House located in the secured area could be sold at a higher price and a house in a less secured area could be sold at a lower price
+Excluded: Roof (as there is no influence)
+
+
+
+#Fiding the correlation between the dependant and Independant variable
+
+data1=cor(data[,c(4,5,6,7,8,9,12,17,18,20)])
+corrplot(data1,method="number")
+view(data$adom_agentdaysonmarket)
+str(data)		
+
+Interepretations
+From the Correlation plot, we can infer the followings:
+•	The variables such as “Sqft”, “bathstotal”, Beds” has a positive correlation.
+•	Price sold Variable is greatly explained by continuous variables such as “Bathstotal”, “sqft”, lot sqft” , “Beds”.
+•	Continuous variables such as adom_agentsdayson market and “cdom_cumulitavedays” has relatively less correlation on the price sold.
+
+Model Building
+
+#Model 1 - Baseline Model
+
+data1<-as.data.frame(data)
+library(ggplot2)
+m1<-lm(pricesold~sqft+data1$Beds+data1$bathstotal,data=data1)
+summary(m1)                                              
+
+#Model 2- Squared Model
+m2<-lm(pricesold~sqft+data1$Beds+data1$bathstotal+I(data1$sqft*data1$sqft),data=data1)
+summary(m2)
+
+#Model 3- Squared model along with factor variable
+
+m3<-lm(pricesold~sqft+data1$Beds+data$bathstotal+
+         I(data1$sqft*data1$sqft)+ 
+         data1$yrblt, data=data1)
+summary(m3)
+plot(m3)
+
+#Combined Output
+library(stargazer)
+stargazer(m1, m2, m3, type="text")
+outfile = "C:/Users/srini/OneDrive/Desktop/SDM Assignment/MOdeloutputs.html"
+stargazer(m1, m2, m3, title="OLS Analysis of Price Sold", out=outfile)
+
+
+#LINE Assumptions verification
+
+Linearity
+summary(m3)
+plot(data$pricesold,m3$fitted.values,main = 'Linear test',pch=19)
+abline(0,1,lwd=2,col='blue')
+
+plot(m3$fitted.values,m3$residuals,pch=19, main="Fitted Values Vs Residuals")
+abline(0,0,lwd=2,col="blue")
+
+Normality
+par(mfrow=c(1,2))
+#Histogram
+hist(m3$residuals,col="red")
+##QQplot
+qqnorm(m3$residuals,pch=19)
+qqline(m3$residuals)
+
+#Equality of Variances
+
+#Levene Test
+leveneTest(m3$res,m3$fitted.values,center=mean)
+
+
+#Independece
+durbin.out=durbinWatsonTest(m3)
+durbin.out
+
+Interpretation
+As the result of the D-W Test falls in the range of 1.5 to 2.5, there is no auto correlation here
+
+#Assumptions Verification
+Linearity	Yes
+Homoskedasticity	
+Yes
+Normality	Partially Yes
+Multicollinearity	No
+Independence	Yes
+
+
+#Final Inference
+For the Model-3 we got the best Adjusted-R^2 of : 0.842 and it also satisfied the LINE assumptions and hence this is th best model
+Also, the best predictors for the model are : sq.ft (Square footage), bathstotal (Total No of Bathroom) and beds (Total No of Bedrooms)
+
+
+
+
+
+
+
